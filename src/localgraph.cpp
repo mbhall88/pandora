@@ -293,6 +293,9 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
             }
         }
         u = v;
+        // sanity check, we don't care enough about finding the path to have exploding vectors
+        if (u.size() > 10000)
+            u.erase(u.begin()+10000,u.end());
         v.clear();
     }
 
@@ -300,6 +303,7 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
         // found no successful path, so return an empty vector
         return npath;
     } else {
+        cout << "have " << w.size() << "candidates" << endl;
         // find the most exact match, the one which covers all sequence with minimal extra to end of graph, or longest
         auto longest_length = 0;
         vector<LocalNodePtr> longest_path;

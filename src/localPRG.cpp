@@ -1374,6 +1374,29 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq,
     output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
 }
 
+bool LocalPRG::vcf_ref_is_good(const std::string &vcf_ref){
+    if (vcf_ref.length() < 30){
+        cout << "Input vcf_ref path was too short to be the ref for PRG " << name << endl;
+        return false;
+    }
+
+    auto refpath {prg.nodes_along_string(vcf_ref, true)};
+    if (refpath.empty()) {
+        refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
+    }
+    if (refpath.empty()){
+        cout << "Input vcf_ref was not a path in PRG " << name << endl;
+        return false;
+    }
+
+    if (refpath[0]->pos.length > 0 or refpath.back()->pos.length > 0){
+        cout << "Input vcf_ref path did not start/end at the beginning/end of PRG " << name << endl;
+        return false;
+    }
+
+    return true;
+}
+
 void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
                                    PanNodePtr pnode,
                                    const std::string &vcf_ref,
@@ -1383,16 +1406,8 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
     std::vector<LocalNodePtr> refpath;
     refpath.reserve(100);
 
-    if (!vcf_ref.empty()) {
+    if (vcf_ref_is_good(vcf_ref)) {
         refpath = prg.nodes_along_string(vcf_ref, true);
-        if (refpath.empty()) {
-            refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
-        }
-        if (refpath.empty()) {
-            std::cout << now() << "Could not find reference sequence for " << name
-                      << "in the PRG so using the top path" << std::endl;
-            refpath = prg.top_path();
-        }
     } else {
         refpath = prg.top_path();
     }
