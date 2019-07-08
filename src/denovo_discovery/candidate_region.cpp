@@ -107,7 +107,7 @@ CandidateRegions find_candidate_regions_for_pan_node(const TmpPanNode &pangraph_
 std::vector<Interval> find_coverage_anomalies(const std::vector<uint32_t> &per_base_coverage,
         const uint_least32_t min_dist_between_candidates) {
     const auto log_change_in_covg { transform_to_log_change(per_base_coverage) };
-    const double covg_threshold { 1.0 };
+    const double covg_threshold { 0.69 };
     std::vector<uint_least32_t> candidate_idxs;
 
     for (uint_least32_t i = 0; i < log_change_in_covg.size(); i++) {
