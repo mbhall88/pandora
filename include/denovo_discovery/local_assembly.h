@@ -37,11 +37,12 @@ public:
     std::pair<DenovoPaths, bool> get_paths_between(const Node &start_node, const Node &end_node,
                                   const uint32_t &max_path_length,
                                   const double &expected_coverage = 1);
-
-private:
     DfsTree depth_first_search_from(const Node &start_node, bool reverse=false);
-
     BfsDistanceMap breadth_first_search_from(const Node &start_node, bool reverse=false);
+private:
+
+
+
 
     void build_paths_between(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
                              DfsTree &tree, BfsDistanceMap &node_to_distance_to_the_end_node, DenovoPaths &paths_between_queries,
