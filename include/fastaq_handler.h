@@ -21,8 +21,8 @@ struct FastaqHandler {
     bool gzipped;
     gzFile fastaq_file;
     kseq_t* inbuf;
-    std::string name;
-    std::string read;
+    std::string name, next_name;
+    std::string read, next_read;
     uint32_t num_reads_parsed;
     int read_status;   // see https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
     int closed_status; // see https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
@@ -44,6 +44,8 @@ struct FastaqHandler {
 
     bool is_closed() const;
 
+private:
+    void read_ahead_next_read();
 };
 
 #endif

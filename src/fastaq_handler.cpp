@@ -24,6 +24,7 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
         throw "Unable to open " + this->filepath;
     }
     this->inbuf = kseq_init(this->fastaq_file);
+    read_ahead_next_read();
 }
 
 FastaqHandler::~FastaqHandler() {
@@ -34,10 +35,7 @@ FastaqHandler::~FastaqHandler() {
 
 bool FastaqHandler::eof() const { return (this->read_status == -1); }
 
-void FastaqHandler::get_next()
-{
-    this->read_status = kseq_read(this->inbuf);
-
+void FastaqHandler::get_next() {
     if (this->eof()) {
         return;
     }
@@ -49,8 +47,19 @@ void FastaqHandler::get_next()
     }
 
     ++this->num_reads_parsed;
-    this->name = this->inbuf->name.s;
-    this->read = this->inbuf->seq.s;
+    this->name = this->next_name;
+    this->read = this->next_read;
+    this->read_ahead_next_read();
+}
+
+void FastaqHandler::read_ahead_next_read()
+{
+    this->read_status = kseq_read(this->inbuf);
+    bool successful_read = this->read_status >= 0;
+    if (successful_read) {
+        this->next_name = this->inbuf->name.s;
+        this->next_read = this->inbuf->seq.s;
+    }
 }
 
 void FastaqHandler::skip_next()
@@ -109,6 +118,7 @@ void FastaqHandler::get_id(const uint32_t& id)
         read.clear();
         gzrewind(this->fastaq_file);
         kseq_rewind(this->inbuf);
+        this->read_ahead_next_read();
     }
 
     while (id > 1 and num_reads_parsed < id) {
