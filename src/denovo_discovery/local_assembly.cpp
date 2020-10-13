@@ -1,25 +1,19 @@
 #include "denovo_discovery/local_assembly.h"
 
-LocalAssemblyGraph& LocalAssemblyGraph::operator=(const Graph& graph)
+LocalAssemblyGraph::LocalAssemblyGraph(
+    const uint32_t kmer_size, const ReadPileup& pileup)
+    : CompactedDBG { (int)kmer_size }
 {
-    if (this != &graph) {
-        _kmerSize = graph._kmerSize;
-        _storageMode = graph._storageMode;
-        _name = graph._name;
-        _info = graph._info;
-        _bloomKind = graph._bloomKind;
-        _debloomKind = graph._debloomKind;
-        _debloomImpl = graph._debloomImpl;
-        _branchingKind = graph._branchingKind;
-        _state = graph._state;
-
-        setStorage(graph._storage);
-
-        if (graph._variant) {
-            *((GraphDataVariant*)_variant) = *((GraphDataVariant*)graph._variant);
+    for (const auto& read : pileup) {
+        if (read.length() < (std::size_t)this->getK()) {
+            continue;
+        }
+        const bool succeeded { this->add(read) };
+        if (not succeeded) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Failed to add read " << read << " to LocalAssemblyGraph";
         }
     }
-    return *this;
 }
 
 bool string_ends_with(std::string const& query, std::string const& ending)

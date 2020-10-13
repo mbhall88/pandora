@@ -10,7 +10,9 @@
 
 #include <gatb/debruijn/impl/Simplifications.hpp>
 #include <gatb/gatb_core.hpp>
+#include "bifrost/src/CompactedDBG.hpp"
 #include <sys/stat.h>
+#include "denovo_discovery/candidate_region.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/log/core.hpp>
@@ -27,9 +29,9 @@ using FoundPaths = bool;
 constexpr float COVG_SCALING_FACTOR { 0.1 };
 constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 25 };
 
-class LocalAssemblyGraph : public Graph {
+class LocalAssemblyGraph : public CompactedDBG<> {
 public:
-    LocalAssemblyGraph& operator=(const Graph& graph);
+    LocalAssemblyGraph(const uint32_t kmer_size, const ReadPileup& pileup);
 
     std::pair<Node, bool> get_node(const std::string& query_kmer);
 

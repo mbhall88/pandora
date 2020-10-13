@@ -3,14 +3,6 @@
 void DenovoDiscovery::find_paths_through_candidate_region(
     CandidateRegion& candidate_region, const fs::path& denovo_output_directory)
 {
-    const auto read_covg { candidate_region.pileup.size() };
-    const auto length_of_candidate_sequence {
-        candidate_region.max_likelihood_sequence.length()
-    };
-    const double expected_kmer_covg { calculate_kmer_coverage(
-        read_covg, length_of_candidate_sequence) };
-    const fs::path GATB_graph_filepath(denovo_output_directory / "GATB_graph");
-
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: "
                              << candidate_region.get_name() << " - interval ["
                              << candidate_region.get_interval() << "]";
@@ -21,6 +13,13 @@ void DenovoDiscovery::find_paths_through_candidate_region(
         return;
     }
 
+    const auto read_covg { candidate_region.pileup.size() };
+    const auto length_of_candidate_sequence {
+        candidate_region.max_likelihood_sequence.length()
+    };
+    const double expected_kmer_covg { calculate_kmer_coverage(
+        read_covg, length_of_candidate_sequence) };
+
     const auto max_path_length { length_of_candidate_sequence + max_insertion_size };
 
     if (kmer_size > max_path_length) {
@@ -30,25 +29,13 @@ void DenovoDiscovery::find_paths_through_candidate_region(
         return;
     }
 
-    LocalAssemblyGraph graph;
-
-    try {
-        const std::string GATB_graph_filepath_as_string = GATB_graph_filepath.string();
-        Graph gatb_graph = LocalAssemblyGraph::create(
-            new BankStrings(candidate_region.pileup),
-            "-kmer-size %d -abundance-min %d -verbose 0 -nb-cores 1 -out %s", kmer_size,
-            min_covg_for_node_in_assembly_graph, GATB_graph_filepath_as_string.c_str());
-        if (clean_assembly_graph) {
-            clean(gatb_graph);
-        }
-        graph = gatb_graph; // TODO: use move constructor
-
-    } catch (gatb::core::system::Exception& error) {
-        BOOST_LOG_TRIVIAL(debug) << "Couldn't create GATB graph."
-                                 << "\n\tEXCEPTION: " << error.getMessage();
-        remove_graph_file(GATB_graph_filepath);
-        return;
-    }
+    LocalAssemblyGraph graph{this->kmer_size, candidate_region.pileup};
+    // todo check min covg for node in asm graph
+    // todo clean graph
+//    if (clean_assembly_graph) {
+//        clean(gatb_graph);
+//    }
+    // todo check graph is valid
 
     Node start_node, end_node;
     bool start_found { false };
